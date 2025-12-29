@@ -112,4 +112,51 @@ export const api = {
       }
     }
   },
+
+  /**
+   * Get available models.
+   */
+  async getAvailableModels() {
+    const response = await fetch(`${API_BASE}/api/models`);
+    if (!response.ok) {
+      throw new Error('Failed to get available models');
+    }
+    return response.json();
+  },
+
+  /**
+   * Get conversation models.
+   */
+  async getConversationModels(conversationId) {
+    const response = await fetch(
+      `${API_BASE}/api/conversations/${conversationId}/models`
+    );
+    if (!response.ok) {
+      throw new Error('Failed to get conversation models');
+    }
+    return response.json();
+  },
+
+  /**
+   * Update conversation models.
+   */
+  async updateConversationModels(conversationId, councilModels, chairmanModel) {
+    const response = await fetch(
+      `${API_BASE}/api/conversations/${conversationId}/models`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          council_models: councilModels,
+          chairman_model: chairmanModel,
+        }),
+      }
+    );
+    if (!response.ok) {
+      throw new Error('Failed to update conversation models');
+    }
+    return response.json();
+  },
 };

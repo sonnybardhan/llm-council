@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ModelSwitcher from './ModelSwitcher';
 import './Sidebar.css';
 
 export default function Sidebar({
@@ -6,6 +7,8 @@ export default function Sidebar({
   currentConversationId,
   onSelectConversation,
   onNewConversation,
+  availableModels,
+  onModelsUpdated,
 }) {
   return (
     <div className="sidebar">
@@ -23,9 +26,8 @@ export default function Sidebar({
           conversations.map((conv) => (
             <div
               key={conv.id}
-              className={`conversation-item ${
-                conv.id === currentConversationId ? 'active' : ''
-              }`}
+              className={`conversation-item ${conv.id === currentConversationId ? 'active' : ''
+                }`}
               onClick={() => onSelectConversation(conv.id)}
             >
               <div className="conversation-title">
@@ -38,6 +40,12 @@ export default function Sidebar({
           ))
         )}
       </div>
+
+      <ModelSwitcher
+        conversationId={currentConversationId}
+        availableModels={availableModels}
+        onModelsUpdated={onModelsUpdated}
+      />
     </div>
   );
 }

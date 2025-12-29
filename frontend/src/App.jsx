@@ -9,10 +9,12 @@ function App() {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [availableModels, setAvailableModels] = useState([]);
 
-  // Load conversations on mount
+  // Load conversations and available models on mount
   useEffect(() => {
     loadConversations();
+    loadAvailableModels();
   }, []);
 
   // Load conversation details when selected
@@ -28,6 +30,15 @@ function App() {
       setConversations(convs);
     } catch (error) {
       console.error('Failed to load conversations:', error);
+    }
+  };
+
+  const loadAvailableModels = async () => {
+    try {
+      const data = await api.getAvailableModels();
+      setAvailableModels(data.models || []);
+    } catch (error) {
+      console.error('Failed to load available models:', error);
     }
   };
 
@@ -55,6 +66,13 @@ function App() {
 
   const handleSelectConversation = (id) => {
     setCurrentConversationId(id);
+  };
+
+  const handleModelsUpdated = () => {
+    // Optionally reload conversation to reflect updated models
+    if (currentConversationId) {
+      loadConversation(currentConversationId);
+    }
   };
 
   const handleSendMessage = async (content) => {
@@ -188,6 +206,8 @@ function App() {
         currentConversationId={currentConversationId}
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
+        availableModels={availableModels}
+        onModelsUpdated={handleModelsUpdated}
       />
       <ChatInterface
         conversation={currentConversation}

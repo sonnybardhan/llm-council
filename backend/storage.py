@@ -29,11 +29,15 @@ def create_conversation(conversation_id: str) -> Dict[str, Any]:
         New conversation dict
     """
     ensure_data_dir()
+    
+    from .config import COUNCIL_MODELS, CHAIRMAN_MODEL
 
     conversation = {
         "id": conversation_id,
         "created_at": datetime.utcnow().isoformat(),
         "title": "New Conversation",
+        "council_models": COUNCIL_MODELS,
+        "chairman_model": CHAIRMAN_MODEL,
         "messages": []
     }
 
@@ -169,4 +173,49 @@ def update_conversation_title(conversation_id: str, title: str):
         raise ValueError(f"Conversation {conversation_id} not found")
 
     conversation["title"] = title
+    save_conversation(conversation)
+
+
+def get_conversation_models(conversation_id: str) -> Dict[str, Any]:
+    """
+    Get the model configuration for a conversation.
+
+    Args:
+        conversation_id: Conversation identifier
+
+    Returns:
+        Dict with 'council_models' and 'chairman_model' keys
+    """
+    from .config import COUNCIL_MODELS, CHAIRMAN_MODEL
+    
+    conversation = get_conversation(conversation_id)
+    if conversation is None:
+        raise ValueError(f"Conversation {conversation_id} not found")
+
+    # Return configured models, or defaults if not set
+    return {
+        "council_models": conversation.get("council_models", COUNCIL_MODELS),
+        "chairman_model": conversation.get("chairman_model", CHAIRMAN_MODEL)
+    }
+
+
+def update_conversation_models(
+    conversation_id: str,
+    council_models: List[str],
+    chairman_model: str
+):
+    """
+    Update the model configuration for a conversation.
+
+    Args:
+        conversation_id: Conversation identifier
+        council_models: List of 4 council model identifiers
+        chairman_model: Chairman model identifier
+    """
+    conversation = get_conversation(conversation_id)
+    if conversation is None:
+        raise ValueError(f"Conversation {conversation_id} not found")
+
+    conversation["council_models"] = council_models
+    conversation["chairman_model"] = chairman_model
     save_conversation(conversation)
