@@ -2,6 +2,10 @@
 
 # LLM Council - Start script
 
+# Set local uv paths to avoid permission issues
+export UV_PYTHON_INSTALL_DIR="$(pwd)/.uv_python"
+export UV_CACHE_DIR="$(pwd)/.uv_cache"
+
 echo "Starting LLM Council..."
 echo ""
 
