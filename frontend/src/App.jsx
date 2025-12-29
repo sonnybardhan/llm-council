@@ -11,6 +11,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [availableModels, setAvailableModels] = useState([]);
 
+  // Initialize theme on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
   // Load conversations and available models on mount
   useEffect(() => {
     loadConversations();

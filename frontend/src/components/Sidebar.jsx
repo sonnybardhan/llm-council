@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ModelSwitcher from './ModelSwitcher';
+import { useTheme } from '../hooks/useTheme';
 import './Sidebar.css';
 
 export default function Sidebar({
@@ -10,6 +11,8 @@ export default function Sidebar({
   availableModels,
   onModelsUpdated,
 }) {
+  const { isDarkMode, toggleTheme } = useTheme();
+
   return (
     <div className="sidebar">
       <div className="sidebar-header">
@@ -46,6 +49,13 @@ export default function Sidebar({
         availableModels={availableModels}
         onModelsUpdated={onModelsUpdated}
       />
+
+      <div className="theme-toggle">
+        <button className="theme-toggle-btn" onClick={toggleTheme}>
+          <span className="theme-icon">{isDarkMode ? '☀️' : '🌙'}</span>
+          {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+        </button>
+      </div>
     </div>
   );
 }

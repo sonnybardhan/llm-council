@@ -9,6 +9,60 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Light theme (default) */
+:root[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f8f8;
+  --bg-tertiary: #f5f5f5;
+  --bg-input: #fafafa;
+  --bg-hover: #f0f0f0;
+  --bg-active: #e8f0fe;
+  --bg-user-message: #f0f7ff;
+
+  --border-primary: #e0e0e0;
+  --border-secondary: #d0d0d0;
+  --border-user-message: #d0e7ff;
+  --border-active: #4a90e2;
+
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-tertiary: #999;
+  --text-inverse: #fff;
+
+  --accent-primary: #4a90e2;
+  --accent-hover: #357abd;
+
+  --code-bg: #f5f5f5;
+  --shadow-sm: rgba(0, 0, 0, 0.05);
+}
+
+/* Dark theme */
+:root[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #242424;
+  --bg-tertiary: #2a2a2a;
+  --bg-input: #1e1e1e;
+  --bg-hover: #2d2d2d;
+  --bg-active: #1e3a5f;
+  --bg-user-message: #1e2a3a;
+
+  --border-primary: #3a3a3a;
+  --border-secondary: #4a4a4a;
+  --border-user-message: #2a4a6a;
+  --border-active: #4a90e2;
+
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #808080;
+  --text-inverse: #fff;
+
+  --accent-primary: #5a9ff2;
+  --accent-hover: #4a8fd2;
+
+  --code-bg: #2a2a2a;
+  --shadow-sm: rgba(0, 0, 0, 0.3);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -19,7 +73,9 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -70,7 +126,7 @@ body {
 }
 
 .markdown-content pre {
-  background: #f5f5f5;
+  background: var(--code-bg);
   padding: 12px;
   border-radius: 4px;
   overflow-x: auto;
@@ -78,7 +134,7 @@ body {
 }
 
 .markdown-content code {
-  background: #f5f5f5;
+  background: var(--code-bg);
   padding: 2px 6px;
   border-radius: 3px;
   font-family: monospace;
@@ -93,6 +149,6 @@ body {
 .markdown-content blockquote {
   margin: 0 0 12px 0;
   padding-left: 16px;
-  border-left: 4px solid #ddd;
-  color: #666;
+  border-left: 4px solid var(--border-primary);
+  color: var(--text-secondary);
 }
