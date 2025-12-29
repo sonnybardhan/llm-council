@@ -209,7 +209,7 @@ def update_conversation_models(
 
     Args:
         conversation_id: Conversation identifier
-        council_models: List of 4 council model identifiers
+        council_models: List of 0-4 council model identifiers
         chairman_model: Chairman model identifier
     """
     conversation = get_conversation(conversation_id)
@@ -219,3 +219,21 @@ def update_conversation_models(
     conversation["council_models"] = council_models
     conversation["chairman_model"] = chairman_model
     save_conversation(conversation)
+
+
+def delete_conversation(conversation_id: str):
+    """
+    Delete a conversation from storage.
+
+    Args:
+        conversation_id: Conversation identifier
+
+    Raises:
+        ValueError: If conversation not found
+    """
+    path = get_conversation_path(conversation_id)
+
+    if not os.path.exists(path):
+        raise ValueError(f"Conversation {conversation_id} not found")
+
+    os.remove(path)

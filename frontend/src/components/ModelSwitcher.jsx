@@ -136,13 +136,23 @@ export default function ModelSwitcher({
     const handleSave = async () => {
         if (!conversationId) return;
 
+        // Filter out empty selections
+        const activeCouncilModels = councilModels.filter(m => m && m.trim());
+        const activeChairman = chairmanModel && chairmanModel.trim() ? chairmanModel : '';
+
+        // Validate: at least one model must be selected
+        if (activeCouncilModels.length === 0 && !activeChairman) {
+            alert('Please select at least one model (council member or chairman).');
+            return;
+        }
+
         setIsSaving(true);
         try {
             const { api } = await import('../api');
             await api.updateConversationModels(
                 conversationId,
-                councilModels,
-                chairmanModel
+                activeCouncilModels,
+                activeChairman
             );
             if (onModelsUpdated) {
                 onModelsUpdated();
@@ -287,7 +297,7 @@ export default function ModelSwitcher({
                     <button
                         className="save-models-btn"
                         onClick={handleSave}
-                        disabled={isSaving || councilModels.length !== 4 || !chairmanModel}
+                        disabled={isSaving}
                     >
                         {isSaving ? 'Saving...' : 'Save Configuration'}
                     </button>
@@ -295,10 +305,14 @@ export default function ModelSwitcher({
                     <button
                         className="save-preset-btn"
                         onClick={handleSaveAsPreset}
-                        disabled={councilModels.length !== 4 || !chairmanModel}
+                        disabled={councilModels.filter(m => m && m.trim()).length === 0 && (!chairmanModel || !chairmanModel.trim())}
                     >
                         💾 Save as Custom Preset
                     </button>
+
+                    <p className="model-help-text">
+                        💡 You can select 0-4 council members. Unselected models won't participate in the evaluation.
+                    </p>
                 </div>
             )}
 

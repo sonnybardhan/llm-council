@@ -11,15 +11,21 @@ async def stage1_collect_responses(user_query: str, council_models: List[str]) -
 
     Args:
         user_query: The user's question
-        council_models: List of model identifiers to query
+        council_models: List of model identifiers to query (can be 0-4 models)
 
     Returns:
         List of dicts with 'model' and 'response' keys
     """
+    # Filter out empty/None model selections
+    active_models = [m for m in council_models if m and m.strip()]
+    
+    if not active_models:
+        return []
+    
     messages = [{"role": "user", "content": user_query}]
 
     # Query all models in parallel
-    responses = await query_models_parallel(council_models, messages)
+    responses = await query_models_parallel(active_models, messages)
 
     # Format results
     stage1_results = []
@@ -49,6 +55,16 @@ async def stage2_collect_rankings(
     Returns:
         Tuple of (rankings list, label_to_model mapping)
     """
+    # If there are no responses or only one response, skip ranking
+    if len(stage1_results) <= 1:
+        return [], {}
+    
+    # Filter out empty/None model selections
+    active_models = [m for m in council_models if m and m.strip()]
+    
+    if not active_models:
+        return [], {}
+    
     # Create anonymized labels for responses (Response A, Response B, etc.)
     labels = [chr(65 + i) for i in range(len(stage1_results))]  # A, B, C, ...
 
@@ -97,8 +113,8 @@ Now provide your evaluation and ranking:"""
 
     messages = [{"role": "user", "content": ranking_prompt}]
 
-    # Get rankings from all council models in parallel
-    responses = await query_models_parallel(council_models, messages)
+    # Get rankings from all active council models in parallel
+    responses = await query_models_parallel(active_models, messages)
 
     # Format results
     stage2_results = []
@@ -308,37 +324,99 @@ async def run_full_council(
 
     Args:
         user_query: The user's question
-        council_models: List of model identifiers for council members
+        council_models: List of model identifiers for council members (0-4 models)
         chairman_model: Model identifier for the chairman
 
     Returns:
         Tuple of (stage1_results, stage2_results, stage3_result, metadata)
     """
+    # Filter out empty/None model selections
+    active_council_models = [m for m in council_models if m and m.strip()]
+    active_chairman = chairman_model if chairman_model and chairman_model.strip() else None
+    
+    # If no models selected at all, return error
+    if not active_council_models and not active_chairman:
+        return [], [], {
+            "model": "error",
+            "response": "No models selected. Please configure at least one model in the Model Settings."
+        }, {}
+    
     # Stage 1: Collect individual responses
-    stage1_results = await stage1_collect_responses(user_query, council_models)
+    stage1_results = await stage1_collect_responses(user_query, active_council_models)
 
     # If no models responded successfully, return error
     if not stage1_results:
+        # If we have a chairman but no council responses, use chairman directly
+        if active_chairman:
+            messages = [{"role": "user", "content": user_query}]
+            response = await query_model(active_chairman, messages)
+            if response:
+                return [], [], {
+                    "model": active_chairman,
+                    "response": response.get('content', '')
+                }, {}
+        
         return [], [], {
             "model": "error",
             "response": "All models failed to respond. Please try again."
         }, {}
 
-    # Stage 2: Collect rankings
+    # If only one model responded, skip ranking and go straight to synthesis
+    if len(stage1_results) == 1:
+        # Use the single response as the final answer if no chairman
+        if not active_chairman:
+            return stage1_results, [], {
+                "model": stage1_results[0]["model"],
+                "response": stage1_results[0]["response"]
+            }, {}
+        
+        # Otherwise, let chairman synthesize based on single response
+        stage3_result = await stage3_synthesize_final(
+            user_query,
+            stage1_results,
+            [],
+            active_chairman
+        )
+        return stage1_results, [], stage3_result, {}
+
+    # Stage 2: Collect rankings (only if we have multiple responses)
     stage2_results, label_to_model = await stage2_collect_rankings(
-        user_query, stage1_results, council_models
+        user_query, stage1_results, active_council_models
     )
 
     # Calculate aggregate rankings
     aggregate_rankings = calculate_aggregate_rankings(stage2_results, label_to_model)
 
     # Stage 3: Synthesize final answer
-    stage3_result = await stage3_synthesize_final(
-        user_query,
-        stage1_results,
-        stage2_results,
-        chairman_model
-    )
+    if active_chairman:
+        stage3_result = await stage3_synthesize_final(
+            user_query,
+            stage1_results,
+            stage2_results,
+            active_chairman
+        )
+    else:
+        # If no chairman, use the top-ranked response as final answer
+        if aggregate_rankings:
+            top_model = aggregate_rankings[0]["model"]
+            top_response = next((r for r in stage1_results if r["model"] == top_model), None)
+            if top_response:
+                stage3_result = {
+                    "model": top_model,
+                    "response": top_response["response"]
+                }
+            else:
+                # Fallback to first response
+                stage3_result = {
+                    "model": stage1_results[0]["model"],
+                    "response": stage1_results[0]["response"]
+                }
+        else:
+            # No rankings available, use first response
+            stage3_result = {
+                "model": stage1_results[0]["model"],
+                "response": stage1_results[0]["response"]
+            }
 
     # Prepare metadata
     metadata = {
