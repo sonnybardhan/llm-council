@@ -10,8 +10,9 @@ import json
 import asyncio
 
 from . import storage
+from . import preset_storage
 from .council import run_full_council, generate_conversation_title, stage1_collect_responses, stage2_collect_rankings, stage3_synthesize_final, calculate_aggregate_rankings
-from .config import AVAILABLE_MODELS
+from .config import AVAILABLE_MODELS, MODEL_PRESETS
 
 app = FastAPI(title="LLM Council API")
 
@@ -37,6 +38,14 @@ class SendMessageRequest(BaseModel):
 
 class UpdateModelsRequest(BaseModel):
     """Request to update conversation models."""
+    council_models: List[str]
+    chairman_model: str
+
+
+class SavePresetRequest(BaseModel):
+    """Request to save a custom preset."""
+    name: str
+    description: str
     council_models: List[str]
     chairman_model: str
 
@@ -90,6 +99,59 @@ async def get_conversation(conversation_id: str):
 async def get_available_models():
     """Get list of available models."""
     return {"models": AVAILABLE_MODELS}
+
+
+@app.get("/api/presets")
+async def get_presets():
+    """Get available model presets (built-in + custom)."""
+    # Combine built-in and custom presets
+    custom_presets = preset_storage.get_custom_presets()
+    all_presets = {
+        **MODEL_PRESETS,
+        **custom_presets
+    }
+    
+    # Mark which are custom
+    presets_with_metadata = {}
+    for key, preset in all_presets.items():
+        presets_with_metadata[key] = {
+            **preset,
+            "is_custom": key in custom_presets
+        }
+    
+    return {"presets": presets_with_metadata}
+
+
+@app.post("/api/presets")
+async def save_custom_preset(request: SavePresetRequest):
+    """Save a custom preset."""
+    import uuid
+    
+    # Generate a unique ID for the preset
+    preset_id = f"custom_{uuid.uuid4().hex[:8]}"
+    
+    preset_data = {
+        "name": request.name,
+        "description": request.description,
+        "council_models": request.council_models,
+        "chairman_model": request.chairman_model
+    }
+    
+    preset_storage.save_custom_preset(preset_id, preset_data)
+    
+    return {"success": True, "preset_id": preset_id}
+
+
+@app.delete("/api/presets/{preset_id}")
+async def delete_custom_preset(preset_id: str):
+    """Delete a custom preset."""
+    # Only allow deleting custom presets
+    if not preset_id.startswith("custom_"):
+        raise HTTPException(status_code=400, detail="Cannot delete built-in presets")
+    
+    preset_storage.delete_custom_preset(preset_id)
+    
+    return {"success": True}
 
 
 @app.get("/api/conversations/{conversation_id}/models")

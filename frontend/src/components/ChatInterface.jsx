@@ -3,12 +3,15 @@ import ReactMarkdown from 'react-markdown';
 import Stage1 from './Stage1';
 import Stage2 from './Stage2';
 import Stage3 from './Stage3';
+import ModelSwitcher from './ModelSwitcher';
 import './ChatInterface.css';
 
 export default function ChatInterface({
   conversation,
   onSendMessage,
   isLoading,
+  availableModels,
+  onModelsUpdated,
 }) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
@@ -50,6 +53,12 @@ export default function ChatInterface({
 
   return (
     <div className="chat-interface">
+      <ModelSwitcher
+        conversationId={conversation?.id}
+        availableModels={availableModels}
+        onModelsUpdated={onModelsUpdated}
+      />
+
       <div className="messages-container">
         {conversation.messages.length === 0 ? (
           <div className="empty-state">

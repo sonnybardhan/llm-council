@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import ModelSwitcher from './ModelSwitcher';
 import { useTheme } from '../hooks/useTheme';
 import './Sidebar.css';
 
@@ -8,8 +7,6 @@ export default function Sidebar({
   currentConversationId,
   onSelectConversation,
   onNewConversation,
-  availableModels,
-  onModelsUpdated,
 }) {
   const { isDarkMode, toggleTheme } = useTheme();
 
@@ -43,12 +40,6 @@ export default function Sidebar({
           ))
         )}
       </div>
-
-      <ModelSwitcher
-        conversationId={currentConversationId}
-        availableModels={availableModels}
-        onModelsUpdated={onModelsUpdated}
-      />
 
       <div className="theme-toggle">
         <button className="theme-toggle-btn" onClick={toggleTheme}>

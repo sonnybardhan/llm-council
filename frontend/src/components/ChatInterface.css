@@ -4,6 +4,15 @@
   flex-direction: column;
   height: 100vh;
   background: var(--bg-primary);
+  position: relative;
+}
+
+/* ModelSwitcher will be positioned at top */
+.chat-interface>.model-switcher {
+  border-bottom: 1px solid var(--border-primary);
+  border-top: none;
+  padding: 1rem;
+  background: var(--bg-secondary);
 }
 
 .messages-container {

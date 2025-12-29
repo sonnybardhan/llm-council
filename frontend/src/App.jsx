@@ -212,13 +212,13 @@ function App() {
         currentConversationId={currentConversationId}
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
-        availableModels={availableModels}
-        onModelsUpdated={handleModelsUpdated}
       />
       <ChatInterface
         conversation={currentConversation}
         onSendMessage={handleSendMessage}
         isLoading={isLoading}
+        availableModels={availableModels}
+        onModelsUpdated={handleModelsUpdated}
       />
     </div>
   );

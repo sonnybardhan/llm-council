@@ -125,6 +125,52 @@ export const api = {
   },
 
   /**
+   * Get available model presets.
+   */
+  async getPresets() {
+    const response = await fetch(`${API_BASE}/api/presets`);
+    if (!response.ok) {
+      throw new Error('Failed to get presets');
+    }
+    return response.json();
+  },
+
+  /**
+   * Save a custom preset.
+   */
+  async saveCustomPreset(name, description, councilModels, chairmanModel) {
+    const response = await fetch(`${API_BASE}/api/presets`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        description,
+        council_models: councilModels,
+        chairman_model: chairmanModel,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to save custom preset');
+    }
+    return response.json();
+  },
+
+  /**
+   * Delete a custom preset.
+   */
+  async deleteCustomPreset(presetId) {
+    const response = await fetch(`${API_BASE}/api/presets/${presetId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete custom preset');
+    }
+    return response.json();
+  },
+
+  /**
    * Get conversation models.
    */
   async getConversationModels(conversationId) {
