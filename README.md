@@ -64,6 +64,11 @@ CHAIRMAN_MODEL = "google/gemini-3-pro-preview"
 ./start.sh
 ```
 
+//kill the server
+```bash
+./stop.sh
+```
+
 **Option 2: Run manually**
 
 Terminal 1 (Backend):
