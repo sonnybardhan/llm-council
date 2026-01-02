@@ -134,7 +134,7 @@
 }
 
 .input-form {
-  grid-column: 1 / -1;
+  grid-column: 1 / 4;
   grid-row: 3;
   display: flex;
   justify-content: center;
