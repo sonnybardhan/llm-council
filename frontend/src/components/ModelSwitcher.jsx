@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './ModelSwitcher.css';
 
 export default function ModelSwitcher({
@@ -16,6 +16,7 @@ export default function ModelSwitcher({
     const [showSavePresetDialog, setShowSavePresetDialog] = useState(false);
     const [presetName, setPresetName] = useState('');
     const [presetDescription, setPresetDescription] = useState('');
+    const modelSwitcherRef = useRef(null);
 
     // Load presets on mount
     useEffect(() => {
@@ -28,6 +29,23 @@ export default function ModelSwitcher({
             loadCurrentModels();
         }
     }, [conversationId]);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (modelSwitcherRef.current && !modelSwitcherRef.current.contains(event.target)) {
+                setIsExpanded(false);
+            }
+        };
+
+        if (isExpanded) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isExpanded]);
 
     const loadPresets = async () => {
         try {
@@ -188,7 +206,7 @@ export default function ModelSwitcher({
     }
 
     return (
-        <div className="model-switcher">
+        <div className="model-switcher" ref={modelSwitcherRef}>
             <button
                 className="model-switcher-toggle"
                 onClick={() => setIsExpanded(!isExpanded)}

@@ -66,6 +66,10 @@ export default function ChatInterface({
     setFontSize(prev => Math.max(prev - 2, 12));
   };
 
+  const resetFontSize = () => {
+    setFontSize(16);
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [conversation]);
@@ -284,6 +288,13 @@ export default function ChatInterface({
             title="Increase font size"
           >
             A+
+          </button>
+          <button
+            className="font-size-btn font-reset-btn"
+            onClick={resetFontSize}
+            title="Reset font size to 16px"
+          >
+            ↺
           </button>
         </div>
       </div>

@@ -38,11 +38,8 @@
   position: absolute;
   top: 100%;
   left: 0;
-  right: 0;
-  margin: 0 auto;
   max-width: 800px;
   width: calc(100% - 2rem);
-  /* Account for padding */
   padding: 1rem;
   background: var(--bg-tertiary);
   border-radius: 0.5rem;
