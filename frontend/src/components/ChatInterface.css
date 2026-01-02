@@ -145,9 +145,9 @@
 }
 
 .input-wrapper {
+  position: relative;
   display: flex;
   align-items: flex-end;
-  gap: 12px;
   width: 100%;
   max-width: 800px;
   background: var(--bg-secondary);
@@ -156,6 +156,7 @@
   padding: 10px 14px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: border-color 0.2s, box-shadow 0.2s;
+  overflow: hidden;
 }
 
 .input-wrapper:focus-within {
@@ -176,6 +177,8 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  flex-shrink: 0;
+  /* Prevent shrinking */
 }
 
 .icon-button:hover {
@@ -184,8 +187,11 @@
 }
 
 .message-input {
-  flex: 1;
+  /* Allow input to take full width of container */
+  width: 100%;
   padding: 8px 0;
+  padding-right: 80px;
+  /* Space for actions */
   background: transparent;
   border: none;
   color: var(--text-primary);
@@ -198,6 +204,24 @@
   max-height: 200px;
   margin-bottom: 3px;
   /* Align with buttons */
+}
+
+/* Custom Scrollbar for Input */
+.message-input::-webkit-scrollbar {
+  width: 4px;
+}
+
+.message-input::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.message-input::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 4px;
+}
+
+.message-input::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
 }
 
 .message-input:focus {
@@ -215,6 +239,12 @@
   align-items: center;
   gap: 12px;
   padding-bottom: 2px;
+  /* Absolute position to sit on top of input padding */
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  background: var(--bg-secondary);
+  /* Match background to cover text if needed, though padding handles it */
 }
 
 .model-badge {
