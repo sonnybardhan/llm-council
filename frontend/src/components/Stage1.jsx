@@ -1,6 +1,27 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import './Stage1.css';
+
+const CopyButton = ({ text }) => {
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = async () => {
+    if (!text) return;
+    try {
+      const contentToCopy = typeof text === 'object' ? JSON.stringify(text, null, 2) : text;
+      await navigator.clipboard.writeText(contentToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+  if (!text) return null;
+  return (
+    <button className={`copy-button ${copied ? 'copied' : ''}`} onClick={handleCopy} title="Copy to clipboard">
+      {copied ? '✓' : '📋'}
+    </button>
+  );
+};
 
 export default function Stage1({ responses }) {
   const [activeTab, setActiveTab] = useState(0);
@@ -26,7 +47,10 @@ export default function Stage1({ responses }) {
       </div>
 
       <div className="tab-content">
-        <div className="model-name">{responses[activeTab].model}</div>
+        <div className="content-header">
+          <div className="model-name">{responses[activeTab].model}</div>
+          <CopyButton text={responses[activeTab].response} />
+        </div>
         <div className="response-text markdown-content">
           <ReactMarkdown>{responses[activeTab].response}</ReactMarkdown>
         </div>

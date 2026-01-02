@@ -6,6 +6,34 @@ import Stage3 from './Stage3';
 import ModelSwitcher from './ModelSwitcher';
 import './ChatInterface.css';
 
+const CopyButton = ({ text }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!text) return;
+    try {
+      const contentToCopy = typeof text === 'object' ? JSON.stringify(text, null, 2) : text;
+      await navigator.clipboard.writeText(contentToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  if (!text) return null;
+
+  return (
+    <button
+      className={`copy-button ${copied ? 'copied' : ''}`}
+      onClick={handleCopy}
+      title="Copy to clipboard"
+    >
+      {copied ? '✓' : '📋'}
+    </button>
+  );
+};
+
 export default function ChatInterface({
   conversation,
   onSendMessage,
@@ -15,9 +43,27 @@ export default function ChatInterface({
 }) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const [fontSize, setFontSize] = useState(16);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  };
+
+  const scrollToTop = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = 0;
+    }
+  };
+
+  const increaseFontSize = () => {
+    setFontSize(prev => Math.min(prev + 2, 24));
+  };
+
+  const decreaseFontSize = () => {
+    setFontSize(prev => Math.max(prev - 2, 12));
   };
 
   useEffect(() => {
@@ -59,7 +105,7 @@ export default function ChatInterface({
         onModelsUpdated={onModelsUpdated}
       />
 
-      <div className="messages-container">
+      <div className="messages-container" ref={messagesContainerRef} style={{ fontSize: `${fontSize}px` }}>
         {conversation.messages.length === 0 ? (
           <div className="empty-state">
             <h2>Start a conversation</h2>
@@ -75,6 +121,7 @@ export default function ChatInterface({
                     <div className="markdown-content">
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
                     </div>
+                    <CopyButton text={msg.content} />
                   </div>
                 </div>
               ) : (
@@ -88,7 +135,7 @@ export default function ChatInterface({
                       <span>Running Stage 1: Collecting individual responses...</span>
                     </div>
                   )}
-                  {msg.stage1 && <Stage1 responses={msg.stage1} />}
+                  {msg.stage1 && <div id={`stage1-${index}`}><Stage1 responses={msg.stage1} /></div>}
 
                   {/* Stage 2 */}
                   {msg.loading?.stage2 && (
@@ -98,11 +145,13 @@ export default function ChatInterface({
                     </div>
                   )}
                   {msg.stage2 && (
-                    <Stage2
-                      rankings={msg.stage2}
-                      labelToModel={msg.metadata?.label_to_model}
-                      aggregateRankings={msg.metadata?.aggregate_rankings}
-                    />
+                    <div id={`stage2-${index}`}>
+                      <Stage2
+                        rankings={msg.stage2}
+                        labelToModel={msg.metadata?.label_to_model}
+                        aggregateRankings={msg.metadata?.aggregate_rankings}
+                      />
+                    </div>
                   )}
 
                   {/* Stage 3 */}
@@ -112,7 +161,14 @@ export default function ChatInterface({
                       <span>Running Stage 3: Final synthesis...</span>
                     </div>
                   )}
-                  {msg.stage3 && <Stage3 finalResponse={msg.stage3} />}
+                  {msg.stage3 && (
+                    <div id={`stage3-${index}`} className="stage3-wrapper">
+                      <Stage3 finalResponse={msg.stage3} />
+                      <div className="stage3-actions">
+                        <CopyButton text={msg.stage3} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -129,26 +185,108 @@ export default function ChatInterface({
         <div ref={messagesEndRef} />
       </div>
 
-      {conversation.messages.length === 0 && (
-        <form className="input-form" onSubmit={handleSubmit}>
-          <textarea
-            className="message-input"
-            placeholder="Ask your question... (Shift+Enter for new line, Enter to send)"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isLoading}
-            rows={3}
-          />
+      {
+        conversation.messages.length === 0 && (
+          <form className="input-form" onSubmit={handleSubmit}>
+            <div className="input-content">
+              <textarea
+                className="message-input"
+                placeholder="Ask your question... (Shift+Enter for new line, Enter to send)"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading}
+                rows={3}
+              />
+              <button
+                type="submit"
+                className="send-button"
+                disabled={!input.trim() || isLoading}
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        )
+      }
+
+      {/* Outline Panel */}
+      {
+        conversation.messages.length > 0 && (
+          <div className="outline-panel" style={{ fontSize: `${fontSize}px` }}>
+            <h3>Outline</h3>
+            <div className="outline-list">
+              {conversation.messages.map((msg, index) => {
+                if (msg.role !== 'assistant') return null;
+                return (
+                  <div key={index} className="outline-section">
+                    <div className="outline-title">Response {Math.floor(index / 2) + 1}</div>
+                    {msg.stage1 && (
+                      <button
+                        className="outline-link"
+                        onClick={() => document.getElementById(`stage1-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      >
+                        Stage 1: Responses
+                      </button>
+                    )}
+                    {msg.stage2 && (
+                      <button
+                        className="outline-link"
+                        onClick={() => document.getElementById(`stage2-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      >
+                        Stage 2: Rankings
+                      </button>
+                    )}
+                    {msg.stage3 && (
+                      <button
+                        className="outline-link"
+                        onClick={() => document.getElementById(`stage3-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      >
+                        Stage 3: Final Answer
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )
+      }
+
+      {/* Floating Navigation */}
+      <div className="floating-nav">
+        <button
+          className="floating-nav-btn"
+          onClick={scrollToTop}
+          title="Scroll to top"
+        >
+          ⬆
+        </button>
+        <button
+          className="floating-nav-btn"
+          onClick={scrollToBottom}
+          title="Scroll to bottom"
+        >
+          ⬇
+        </button>
+        <div className="font-size-controls">
           <button
-            type="submit"
-            className="send-button"
-            disabled={!input.trim() || isLoading}
+            className="font-size-btn"
+            onClick={decreaseFontSize}
+            title="Decrease font size"
           >
-            Send
+            A-
           </button>
-        </form>
-      )}
+          <span className="font-size-display">{fontSize}px</span>
+          <button
+            className="font-size-btn"
+            onClick={increaseFontSize}
+            title="Increase font size"
+          >
+            A+
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
