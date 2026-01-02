@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings, ChevronDown } from 'lucide-react';
+import { Settings, ChevronDown, Trash2 } from 'lucide-react';
 import './ModelSwitcher.css';
 
 export default function ModelSwitcher({
@@ -252,7 +252,7 @@ export default function ModelSwitcher({
                                         onClick={() => handleDeletePreset(selectedPreset)}
                                         title="Delete custom preset"
                                     >
-                                        🗑️
+                                        <Trash2 size={16} />
                                     </button>
                                 )}
                             </div>

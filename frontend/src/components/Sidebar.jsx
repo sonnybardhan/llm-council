@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Trash2 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import './Sidebar.css';
 
@@ -53,7 +53,7 @@ export default function Sidebar({
                 onClick={(e) => handleDelete(e, conv.id)}
                 title="Delete conversation"
               >
-                🗑️
+                <Trash2 size={16} />
               </button>
             </div>
           ))
