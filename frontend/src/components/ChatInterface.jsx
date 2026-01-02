@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { ChevronUp, ChevronDown, Minus, Plus, RotateCcw, Copy, Check, Send, Moon, Sun } from 'lucide-react';
 import Stage1 from './Stage1';
 import Stage2 from './Stage2';
 import Stage3 from './Stage3';
@@ -29,7 +30,7 @@ const CopyButton = ({ text }) => {
       onClick={handleCopy}
       title="Copy to clipboard"
     >
-      {copied ? '✓' : '📋'}
+      {copied ? <Check size={14} /> : <Copy size={14} />}
     </button>
   );
 };
@@ -45,6 +46,7 @@ export default function ChatInterface({
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const [fontSize, setFontSize] = useState(16);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
@@ -70,6 +72,11 @@ export default function ChatInterface({
     setFontSize(16);
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(prev => !prev);
+    document.documentElement.setAttribute('data-theme', isDarkMode ? 'light' : 'dark');
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [conversation]);
@@ -93,9 +100,11 @@ export default function ChatInterface({
   if (!conversation) {
     return (
       <div className="chat-interface">
-        <div className="empty-state">
-          <h2>Welcome to LLM Council</h2>
-          <p>Create a new conversation to get started</p>
+        <div className="empty-state-wrapper">
+          <div className="empty-state">
+            <h2>Welcome to LLM Council</h2>
+            <p>Create a new conversation to get started</p>
+          </div>
         </div>
       </div>
     );
@@ -109,11 +118,13 @@ export default function ChatInterface({
         onModelsUpdated={onModelsUpdated}
       />
 
-      <div className="messages-container" ref={messagesContainerRef} style={{ fontSize: `${fontSize}px` }}>
+      <div className="messages-container" ref={messagesContainerRef} style={{ '--user-font-size': `${fontSize}px` }}>
         {conversation.messages.length === 0 ? (
-          <div className="empty-state">
-            <h2>Start a conversation</h2>
-            <p>Ask a question to consult the LLM Council</p>
+          <div className="empty-state-wrapper">
+            <div className="empty-state">
+              <h2>Start a conversation</h2>
+              <p>Ask a question to consult the LLM Council</p>
+            </div>
           </div>
         ) : (
           conversation.messages.map((msg, index) => (
@@ -189,6 +200,26 @@ export default function ChatInterface({
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Navigation Controls - Only show when there are messages */}
+      {conversation.messages.length > 0 && (
+        <div className="nav-controls">
+          <button
+            className="nav-control-btn"
+            onClick={scrollToTop}
+            title="Scroll to top"
+          >
+            <ChevronUp size={16} />
+          </button>
+          <button
+            className="nav-control-btn"
+            onClick={scrollToBottom}
+            title="Scroll to bottom"
+          >
+            <ChevronDown size={16} />
+          </button>
+        </div>
+      )}
+
       {
         conversation.messages.length === 0 && (
           <form className="input-form" onSubmit={handleSubmit}>
@@ -206,8 +237,9 @@ export default function ChatInterface({
                 type="submit"
                 className="send-button"
                 disabled={!input.trim() || isLoading}
+                title="Send message"
               >
-                Send
+                <Send size={18} />
               </button>
             </div>
           </form>
@@ -218,7 +250,9 @@ export default function ChatInterface({
       {
         conversation.messages.length > 0 && (
           <div className="outline-panel" style={{ fontSize: `${fontSize}px` }}>
-            <h3>Outline</h3>
+            <div className="outline-header">
+              <h3>Outline</h3>
+            </div>
             <div className="outline-list">
               {conversation.messages.map((msg, index) => {
                 if (msg.role !== 'assistant') return null;
@@ -253,51 +287,35 @@ export default function ChatInterface({
                 );
               })}
             </div>
+            <div className="outline-footer">
+              <div className="font-size-controls">
+                <button
+                  className="font-size-btn"
+                  onClick={decreaseFontSize}
+                  title="Decrease font size"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="font-size-display">{fontSize}px</span>
+                <button
+                  className="font-size-btn"
+                  onClick={increaseFontSize}
+                  title="Increase font size"
+                >
+                  <Plus size={16} />
+                </button>
+                <button
+                  className="font-size-btn font-reset-btn"
+                  onClick={resetFontSize}
+                  title="Reset font size to 16px"
+                >
+                  <RotateCcw size={16} />
+                </button>
+              </div>
+            </div>
           </div>
         )
       }
-
-      {/* Floating Navigation */}
-      <div className="floating-nav">
-        <button
-          className="floating-nav-btn"
-          onClick={scrollToTop}
-          title="Scroll to top"
-        >
-          ⬆
-        </button>
-        <button
-          className="floating-nav-btn"
-          onClick={scrollToBottom}
-          title="Scroll to bottom"
-        >
-          ⬇
-        </button>
-        <div className="font-size-controls">
-          <button
-            className="font-size-btn"
-            onClick={decreaseFontSize}
-            title="Decrease font size"
-          >
-            A-
-          </button>
-          <span className="font-size-display">{fontSize}px</span>
-          <button
-            className="font-size-btn"
-            onClick={increaseFontSize}
-            title="Increase font size"
-          >
-            A+
-          </button>
-          <button
-            className="font-size-btn font-reset-btn"
-            onClick={resetFontSize}
-            title="Reset font size to 16px"
-          >
-            ↺
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

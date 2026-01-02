@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Settings, ChevronDown } from 'lucide-react';
 import './ModelSwitcher.css';
 
 export default function ModelSwitcher({
@@ -211,8 +212,10 @@ export default function ModelSwitcher({
                 className="model-switcher-toggle"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                <span>⚙️ Model Settings</span>
-                <span className={`arrow ${isExpanded ? 'expanded' : ''}`}>▼</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Settings size={16} /> Model Settings
+                </span>
+                <ChevronDown size={14} className={`arrow ${isExpanded ? 'expanded' : ''}`} />
             </button>
 
             {isExpanded && (

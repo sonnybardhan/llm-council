@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import './Sidebar.css';
 
@@ -61,8 +62,7 @@ export default function Sidebar({
 
       <div className="theme-toggle">
         <button className="theme-toggle-btn" onClick={toggleTheme}>
-          <span className="theme-icon">{isDarkMode ? '☀️' : '🌙'}</span>
-          {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
       </div>
     </div>

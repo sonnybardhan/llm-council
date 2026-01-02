@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { Copy, Check } from 'lucide-react';
 import './Stage2.css';
 
 const CopyButton = ({ text }) => {
@@ -18,7 +19,7 @@ const CopyButton = ({ text }) => {
   if (!text) return null;
   return (
     <button className={`copy-button ${copied ? 'copied' : ''}`} onClick={handleCopy} title="Copy to clipboard">
-      {copied ? '✓' : '📋'}
+      {copied ? <Check size={14} /> : <Copy size={14} />}
     </button>
   );
 };
