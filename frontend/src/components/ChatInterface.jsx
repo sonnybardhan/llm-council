@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { ChevronUp, ChevronDown, Minus, Plus, RotateCcw, Copy, Check, Send, Moon, Sun } from 'lucide-react';
+import { ChevronUp, ChevronDown, Minus, Plus, RotateCcw, Copy, Check, Send, Moon, Sun, ArrowUp } from 'lucide-react';
 import Stage1 from './Stage1';
 import Stage2 from './Stage2';
 import Stage3 from './Stage3';
@@ -47,6 +47,14 @@ export default function ChatInterface({
   const messagesContainerRef = useRef(null);
   const [fontSize, setFontSize] = useState(16);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    }
+  }, [input]);
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
@@ -79,6 +87,14 @@ export default function ChatInterface({
 
   useEffect(() => {
     scrollToBottom();
+    if (conversation?.messages?.length > 0) {
+      const firstUserMsg = conversation.messages.find(m => m.role === 'user');
+      if (firstUserMsg) {
+        document.title = firstUserMsg.content.slice(0, 50) + (firstUserMsg.content.length > 50 ? '...' : '');
+      }
+    } else {
+      document.title = 'LLM Council';
+    }
   }, [conversation]);
 
   const handleSubmit = (e) => {
@@ -223,24 +239,32 @@ export default function ChatInterface({
       {
         conversation.messages.length === 0 && (
           <form className="input-form" onSubmit={handleSubmit}>
-            <div className="input-content">
+            <div className="input-wrapper">
+
+
+
               <textarea
+                ref={textareaRef}
                 className="message-input"
-                placeholder="Ask your question... (Shift+Enter for new line, Enter to send)"
+                placeholder="What would you like to discuss?"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isLoading}
-                rows={3}
+                rows={1}
               />
-              <button
-                type="submit"
-                className="send-button"
-                disabled={!input.trim() || isLoading}
-                title="Send message"
-              >
-                <Send size={18} />
-              </button>
+
+              <div className="input-actions">
+
+                <button
+                  type="submit"
+                  className="send-button"
+                  disabled={!input.trim() || isLoading}
+                  title="Send message"
+                >
+                  <ArrowUp size={20} />
+                </button>
+              </div>
             </div>
           </form>
         )
