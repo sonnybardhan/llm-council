@@ -196,6 +196,7 @@ export default function ModelSwitcher({
             alert('Failed to update models. Please try again.');
         } finally {
             setIsSaving(false);
+            setIsExpanded(false); // Close dropdown on save
         }
     };
 

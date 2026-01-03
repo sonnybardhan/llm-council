@@ -6,7 +6,9 @@
 
 .model-switcher-toggle {
   width: 100%;
-  max-width: 300px;
+  /* max-width: 300px; Removed to allow full header interaction */
+  max-width: 500px;
+  /* Capped at 500px per user request */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -38,7 +40,7 @@
   position: absolute;
   top: 100%;
   left: 0;
-  max-width: 800px;
+  max-width: 500px;
   width: calc(100% - 2rem);
   padding: 1rem;
   background: var(--bg-tertiary);
