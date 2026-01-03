@@ -208,9 +208,9 @@ export default function ChatInterface({
                     {msg.stage3 && (
                       <div id={`stage3-${index}`} className="stage3-wrapper">
                         <Stage3 finalResponse={msg.stage3} />
-                        <div className="stage3-actions">
+                        {/* <div className="stage3-actions">
                           <CopyButton text={msg.stage3} />
-                        </div>
+                        </div> */}
                       </div>
                     )}
                   </div>
