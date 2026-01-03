@@ -8,6 +8,7 @@ export default function ModelSwitcher({
     onModelsUpdated,
 }) {
     const [councilModels, setCouncilModels] = useState([]);
+    const [modelEnabled, setModelEnabled] = useState([true, true, true, true]); // Track enabled state
     const [chairmanModel, setChairmanModel] = useState('');
     const [isExpanded, setIsExpanded] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -63,6 +64,14 @@ export default function ModelSwitcher({
             const { api } = await import('../api');
             const models = await api.getConversationModels(conversationId);
             setCouncilModels(models.council_models || []);
+            // Initialize enabled state based on loaded models
+            // If a model is empty string, we can consider it "disabled" or just empty. 
+            // But preserving the slot is better. Let's assume all fetched slots are "enabled" by default
+            // unless we want to persist the "disabled" state. 
+            // For now, let's keep all 4 enabled by default, as the backend returns the list.
+            // Actually, if the backend returns fewer than 4 models, we should handle that.
+            // But the UI expects 4 slots.
+            setModelEnabled([true, true, true, true]);
             setChairmanModel(models.chairman_model || '');
             setAppliedPreset(''); // Reset applied preset when loading
         } catch (error) {
@@ -74,6 +83,12 @@ export default function ModelSwitcher({
         const newModels = [...councilModels];
         newModels[index] = value;
         setCouncilModels(newModels);
+    };
+
+    const toggleModelEnabled = (index) => {
+        const newEnabled = [...modelEnabled];
+        newEnabled[index] = !newEnabled[index];
+        setModelEnabled(newEnabled);
     };
 
     const handleChairmanModelChange = (value) => {
@@ -155,8 +170,8 @@ export default function ModelSwitcher({
     const handleSave = async () => {
         if (!conversationId) return;
 
-        // Filter out empty selections
-        const activeCouncilModels = councilModels.filter(m => m && m.trim());
+        // Filter out empty selections AND disabled models
+        const activeCouncilModels = councilModels.filter((m, i) => modelEnabled[i] && m && m.trim());
         const activeChairman = chairmanModel && chairmanModel.trim() ? chairmanModel : '';
 
         // Validate: at least one model must be selected
@@ -275,11 +290,22 @@ export default function ModelSwitcher({
                         <h4>Council Members</h4>
                         {[0, 1, 2, 3].map((index) => (
                             <div key={index} className="model-select-wrapper">
-                                <label>Member {index + 1}</label>
+                                <div className="model-label-row">
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={modelEnabled[index]}
+                                            onChange={() => toggleModelEnabled(index)}
+                                            title={modelEnabled[index] ? "Disable this member" : "Enable this member"}
+                                        />
+                                        Member {index + 1}
+                                    </label>
+                                </div>
                                 <select
                                     value={councilModels[index] || ''}
                                     onChange={(e) => handleCouncilModelChange(index, e.target.value)}
-                                    className="model-select"
+                                    className={`model-select ${!modelEnabled[index] ? 'disabled' : ''}`}
+                                    disabled={!modelEnabled[index]}
                                 >
                                     <option value="">Select a model...</option>
                                     {availableModels.map((model) => (
@@ -332,7 +358,7 @@ export default function ModelSwitcher({
                     </button>
 
                     <p className="model-help-text">
-                        💡 You can select 0-4 council members. Unselected models won't participate in the evaluation.
+                        💡 You can select 0-4 council members. Unchecked models won't participate in the evaluation.
                     </p>
                 </div>
             )}

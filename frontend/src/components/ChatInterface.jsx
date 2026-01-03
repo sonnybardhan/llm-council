@@ -5,6 +5,7 @@ import Stage1 from './Stage1';
 import Stage2 from './Stage2';
 import Stage3 from './Stage3';
 import ModelSwitcher from './ModelSwitcher';
+import { rubberbandScroll } from '../utils/animateScroll';
 import './ChatInterface.css';
 
 const CopyButton = ({ text }) => {
@@ -45,6 +46,7 @@ export default function ChatInterface({
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const messagesContentRef = useRef(null);
   const [fontSize, setFontSize] = useState(16);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const textareaRef = useRef(null);
@@ -58,13 +60,14 @@ export default function ChatInterface({
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      const target = messagesContainerRef.current.scrollHeight - messagesContainerRef.current.clientHeight;
+      rubberbandScroll(messagesContainerRef.current, target, { wrapper: messagesContentRef.current });
     }
   };
 
   const scrollToTop = () => {
     if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = 0;
+      rubberbandScroll(messagesContainerRef.current, 0, { wrapper: messagesContentRef.current });
     }
   };
 
@@ -135,85 +138,87 @@ export default function ChatInterface({
       />
 
       <div className="messages-container" ref={messagesContainerRef} style={{ '--user-font-size': `${fontSize}px` }}>
-        {conversation.messages.length === 0 ? (
-          <div className="empty-state-wrapper">
-            <div className="empty-state">
-              <h2>Start a conversation</h2>
-              <p>Ask a question to consult the LLM Council</p>
+        <div className="messages-content" ref={messagesContentRef}>
+          {conversation.messages.length === 0 ? (
+            <div className="empty-state-wrapper">
+              <div className="empty-state">
+                <h2>Start a conversation</h2>
+                <p>Ask a question to consult the LLM Council</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          conversation.messages.map((msg, index) => (
-            <div key={index} className="message-group">
-              {msg.role === 'user' ? (
-                <div className="user-message">
-                  <div className="message-label">You</div>
-                  <div className="message-content">
-                    <div className="markdown-content">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
-                    </div>
-                    <CopyButton text={msg.content} />
-                  </div>
-                </div>
-              ) : (
-                <div className="assistant-message">
-                  <div className="message-label">LLM Council</div>
-
-                  {/* Stage 1 */}
-                  {msg.loading?.stage1 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Running Stage 1: Collecting individual responses...</span>
-                    </div>
-                  )}
-                  {msg.stage1 && <div id={`stage1-${index}`}><Stage1 responses={msg.stage1} /></div>}
-
-                  {/* Stage 2 */}
-                  {msg.loading?.stage2 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Running Stage 2: Peer rankings...</span>
-                    </div>
-                  )}
-                  {msg.stage2 && (
-                    <div id={`stage2-${index}`}>
-                      <Stage2
-                        rankings={msg.stage2}
-                        labelToModel={msg.metadata?.label_to_model}
-                        aggregateRankings={msg.metadata?.aggregate_rankings}
-                      />
-                    </div>
-                  )}
-
-                  {/* Stage 3 */}
-                  {msg.loading?.stage3 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Running Stage 3: Final synthesis...</span>
-                    </div>
-                  )}
-                  {msg.stage3 && (
-                    <div id={`stage3-${index}`} className="stage3-wrapper">
-                      <Stage3 finalResponse={msg.stage3} />
-                      <div className="stage3-actions">
-                        <CopyButton text={msg.stage3} />
+          ) : (
+            conversation.messages.map((msg, index) => (
+              <div key={index} className="message-group">
+                {msg.role === 'user' ? (
+                  <div className="user-message">
+                    <div className="message-label">You</div>
+                    <div className="message-content">
+                      <div className="markdown-content">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
+                      <CopyButton text={msg.content} />
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                ) : (
+                  <div className="assistant-message">
+                    <div className="message-label">LLM Council</div>
+
+                    {/* Stage 1 */}
+                    {msg.loading?.stage1 && (
+                      <div className="stage-loading">
+                        <div className="spinner"></div>
+                        <span>Running Stage 1: Collecting individual responses...</span>
+                      </div>
+                    )}
+                    {msg.stage1 && <div id={`stage1-${index}`}><Stage1 responses={msg.stage1} /></div>}
+
+                    {/* Stage 2 */}
+                    {msg.loading?.stage2 && (
+                      <div className="stage-loading">
+                        <div className="spinner"></div>
+                        <span>Running Stage 2: Peer rankings...</span>
+                      </div>
+                    )}
+                    {msg.stage2 && (
+                      <div id={`stage2-${index}`}>
+                        <Stage2
+                          rankings={msg.stage2}
+                          labelToModel={msg.metadata?.label_to_model}
+                          aggregateRankings={msg.metadata?.aggregate_rankings}
+                        />
+                      </div>
+                    )}
+
+                    {/* Stage 3 */}
+                    {msg.loading?.stage3 && (
+                      <div className="stage-loading">
+                        <div className="spinner"></div>
+                        <span>Running Stage 3: Final synthesis...</span>
+                      </div>
+                    )}
+                    {msg.stage3 && (
+                      <div id={`stage3-${index}`} className="stage3-wrapper">
+                        <Stage3 finalResponse={msg.stage3} />
+                        <div className="stage3-actions">
+                          <CopyButton text={msg.stage3} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+
+          {isLoading && (
+            <div className="loading-indicator">
+              <div className="spinner"></div>
+              <span>Consulting the council...</span>
             </div>
-          ))
-        )}
+          )}
 
-        {isLoading && (
-          <div className="loading-indicator">
-            <div className="spinner"></div>
-            <span>Consulting the council...</span>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Navigation Controls - Only show when there are messages */}
@@ -286,7 +291,12 @@ export default function ChatInterface({
                     {msg.stage1 && (
                       <button
                         className="outline-link"
-                        onClick={() => document.getElementById(`stage1-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        onClick={() => {
+                          const el = document.getElementById(`stage1-${index}`);
+                          if (el && messagesContainerRef.current) {
+                            rubberbandScroll(messagesContainerRef.current, el.offsetTop - 20, { wrapper: messagesContentRef.current });
+                          }
+                        }}
                       >
                         Stage 1: Responses
                       </button>
@@ -294,7 +304,12 @@ export default function ChatInterface({
                     {msg.stage2 && (
                       <button
                         className="outline-link"
-                        onClick={() => document.getElementById(`stage2-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        onClick={() => {
+                          const el = document.getElementById(`stage2-${index}`);
+                          if (el && messagesContainerRef.current) {
+                            rubberbandScroll(messagesContainerRef.current, el.offsetTop - 20, { wrapper: messagesContentRef.current });
+                          }
+                        }}
                       >
                         Stage 2: Rankings
                       </button>
@@ -302,7 +317,12 @@ export default function ChatInterface({
                     {msg.stage3 && (
                       <button
                         className="outline-link"
-                        onClick={() => document.getElementById(`stage3-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        onClick={() => {
+                          const el = document.getElementById(`stage3-${index}`);
+                          if (el && messagesContainerRef.current) {
+                            rubberbandScroll(messagesContainerRef.current, el.offsetTop - 20, { wrapper: messagesContentRef.current });
+                          }
+                        }}
                       >
                         Stage 3: Final Answer
                       </button>
