@@ -288,15 +288,15 @@ export default function ChatInterface({
       {
         conversation.messages.length > 0 && (
           <div className="outline-panel" style={{ fontSize: `${fontSize}px` }}>
-            <div className="outline-header">
+            {/* <div className="outline-header">
               <h3>Outline</h3>
-            </div>
+            </div> */}
             <div className="outline-list">
               {conversation.messages.map((msg, index) => {
                 if (msg.role !== 'assistant') return null;
                 return (
                   <div key={index} className="outline-section">
-                    <div className="outline-title">Response {Math.floor(index / 2) + 1}</div>
+                    <div className="outline-title">Responses</div>
                     {msg.stage1 && (
                       <button
                         className="outline-link"
