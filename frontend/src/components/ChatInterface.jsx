@@ -97,6 +97,9 @@ export default function ChatInterface({
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'light' : 'dark');
   };
 
+  const [activeSection, setActiveSection] = useState('');
+  const scrollTimeoutRef = useRef(null);
+
   useEffect(() => {
     scrollToBottom();
     if (conversation?.messages?.length > 0) {
@@ -107,6 +110,59 @@ export default function ChatInterface({
     } else {
       document.title = 'LLM Council';
     }
+  }, [conversation]);
+
+  // Scroll Spy Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!messagesContainerRef.current) return;
+
+      if (scrollTimeoutRef.current) {
+        cancelAnimationFrame(scrollTimeoutRef.current);
+      }
+
+      scrollTimeoutRef.current = requestAnimationFrame(() => {
+        const container = messagesContainerRef.current;
+        const scrollPosition = container.scrollTop + container.offsetTop + 100; // Offset for better triggering
+
+        // Collect all potential section IDs
+        const sections = [];
+        conversation?.messages?.forEach((msg, index) => {
+          if (msg.role !== 'assistant') return;
+          if (msg.stage1) sections.push(`stage1-${index}`);
+          if (msg.stage2) sections.push(`stage2-${index}`);
+          if (msg.stage3) sections.push(`stage3-${index}`);
+        });
+
+        // Find the current section
+        for (const id of sections) {
+          const element = document.getElementById(id);
+          if (element) {
+            const { offsetTop, offsetHeight } = element;
+            // Check if the scroll position is within this element's vertical area
+            // We use a broader range to "catch" the section as it comes into view or passes through the top
+            if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+              setActiveSection(id);
+              return;
+            }
+          }
+        }
+      });
+    };
+
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+      if (scrollTimeoutRef.current) {
+        cancelAnimationFrame(scrollTimeoutRef.current);
+      }
+    };
   }, [conversation]);
 
   const handleSubmit = (e) => {
@@ -299,7 +355,7 @@ export default function ChatInterface({
                     <div className="outline-title">Responses</div>
                     {msg.stage1 && (
                       <button
-                        className="outline-link"
+                        className={`outline-link ${activeSection === `stage1-${index}` ? 'active' : ''}`}
                         onClick={() => {
                           const el = document.getElementById(`stage1-${index}`);
                           if (el && messagesContainerRef.current) {
@@ -316,7 +372,7 @@ export default function ChatInterface({
                     )}
                     {msg.stage2 && (
                       <button
-                        className="outline-link"
+                        className={`outline-link ${activeSection === `stage2-${index}` ? 'active' : ''}`}
                         onClick={() => {
                           const el = document.getElementById(`stage2-${index}`);
                           if (el && messagesContainerRef.current) {
@@ -333,7 +389,7 @@ export default function ChatInterface({
                     )}
                     {msg.stage3 && (
                       <button
-                        className="outline-link"
+                        className={`outline-link ${activeSection === `stage3-${index}` ? 'active' : ''}`}
                         onClick={() => {
                           const el = document.getElementById(`stage3-${index}`);
                           if (el && messagesContainerRef.current) {

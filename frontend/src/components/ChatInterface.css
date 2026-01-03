@@ -498,6 +498,13 @@
   color: var(--text-primary);
 }
 
+.outline-link.active {
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+
 /* Floating Navigation */
 .floating-nav {
   position: fixed;
