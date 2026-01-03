@@ -4,9 +4,9 @@ export const rubberbandScroll = (element, target, options = {}) => {
     // Friction: Damping (lower = more oscillation)
     // Mass: Weight (higher = slower acceleration)
     // Tuned for "extreme subtlety": Moderate friction, 2px amplitude.
-    const tension = options.tension || 160;
-    const friction = options.friction || 14; // Increased to 14 for less overshoot
-    const mass = options.mass || 1;
+    const tension = options.tension || 190;
+    const friction = options.friction || 15; // Increased to 14 for less overshoot
+    const mass = options.mass || 1.2;
     const epsilon = 0.1; // Threshold to stop animation
 
     let position = element.scrollTop;
@@ -32,7 +32,7 @@ export const rubberbandScroll = (element, target, options = {}) => {
     let animationFrameId;
 
     const animate = (currentTime) => {
-        const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1); // Limit dt for stability
+        const deltaTime = Math.min((currentTime - lastTime) / 700, 0.1); // Limit dt for stability
         lastTime = currentTime;
 
         // Spring force = -k * x (Hooke's Law)
