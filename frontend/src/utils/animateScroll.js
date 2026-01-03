@@ -3,8 +3,9 @@ export const rubberbandScroll = (element, target, options = {}) => {
     // Tension: Stiffness of the spring (higher = faster snap)
     // Friction: Damping (lower = more oscillation)
     // Mass: Weight (higher = slower acceleration)
+    // Tuned for "50% more subtle": Higher friction -> less bounce.
     const tension = options.tension || 180;
-    const friction = options.friction || 12;
+    const friction = options.friction || 18; // Adjusted to 18 (was 12, then 24)
     const mass = options.mass || 1;
     const epsilon = 0.1; // Threshold to stop animation
 
@@ -13,14 +14,18 @@ export const rubberbandScroll = (element, target, options = {}) => {
 
     // If we're already at the target, force a small displacement to trigger the effect
     // This ensures the user feels the "action" even if no scroll is needed
+    // If we're already at the target, force a small displacement to trigger the effect
+    // This ensures the user feels the "action" even if no scroll is needed
     if (Math.abs(position - target) < 1) {
         if (target === 0) {
             // Pull down slightly so it snaps back up
-            position = 50;
+            // Re-tuned to 35 for better visibility
+            position = 35;
             element.scrollTop = position;
         } else {
             // Pull up slightly so it snaps back down
-            position = target - 50;
+            // Re-tuned to 35 for better visibility
+            position = target - 35;
             element.scrollTop = position;
         }
     }

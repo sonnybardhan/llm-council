@@ -48,6 +48,7 @@ export default function ChatInterface({
   const messagesContainerRef = useRef(null);
   const messagesContentRef = useRef(null);
   const [fontSize, setFontSize] = useState(16);
+  const [isRubberbandEnabled, setIsRubberbandEnabled] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const textareaRef = useRef(null);
 
@@ -60,14 +61,22 @@ export default function ChatInterface({
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
-      const target = messagesContainerRef.current.scrollHeight - messagesContainerRef.current.clientHeight;
-      rubberbandScroll(messagesContainerRef.current, target, { wrapper: messagesContentRef.current });
+      if (isRubberbandEnabled) {
+        const target = messagesContainerRef.current.scrollHeight - messagesContainerRef.current.clientHeight;
+        rubberbandScroll(messagesContainerRef.current, target, { wrapper: messagesContentRef.current });
+      } else {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
   const scrollToTop = () => {
     if (messagesContainerRef.current) {
-      rubberbandScroll(messagesContainerRef.current, 0, { wrapper: messagesContentRef.current });
+      if (isRubberbandEnabled) {
+        rubberbandScroll(messagesContainerRef.current, 0, { wrapper: messagesContentRef.current });
+      } else {
+        messagesContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -294,7 +303,11 @@ export default function ChatInterface({
                         onClick={() => {
                           const el = document.getElementById(`stage1-${index}`);
                           if (el && messagesContainerRef.current) {
-                            rubberbandScroll(messagesContainerRef.current, el.offsetTop - 20, { wrapper: messagesContentRef.current });
+                            if (isRubberbandEnabled) {
+                              rubberbandScroll(messagesContainerRef.current, el.offsetTop - 20, { wrapper: messagesContentRef.current });
+                            } else {
+                              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
                           }
                         }}
                       >
@@ -307,7 +320,11 @@ export default function ChatInterface({
                         onClick={() => {
                           const el = document.getElementById(`stage2-${index}`);
                           if (el && messagesContainerRef.current) {
-                            rubberbandScroll(messagesContainerRef.current, el.offsetTop - 20, { wrapper: messagesContentRef.current });
+                            if (isRubberbandEnabled) {
+                              rubberbandScroll(messagesContainerRef.current, el.offsetTop - 20, { wrapper: messagesContentRef.current });
+                            } else {
+                              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
                           }
                         }}
                       >
@@ -320,7 +337,11 @@ export default function ChatInterface({
                         onClick={() => {
                           const el = document.getElementById(`stage3-${index}`);
                           if (el && messagesContainerRef.current) {
-                            rubberbandScroll(messagesContainerRef.current, el.offsetTop - 20, { wrapper: messagesContentRef.current });
+                            if (isRubberbandEnabled) {
+                              rubberbandScroll(messagesContainerRef.current, el.offsetTop - 20, { wrapper: messagesContentRef.current });
+                            } else {
+                              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
                           }
                         }}
                       >
@@ -333,6 +354,15 @@ export default function ChatInterface({
             </div>
             <div className="outline-footer">
               <div className="font-size-controls">
+                <button
+                  className="font-size-btn"
+                  onClick={() => setIsRubberbandEnabled(!isRubberbandEnabled)}
+                  title={isRubberbandEnabled ? "Disable rubberband scroll" : "Enable rubberband scroll"}
+                  style={{ opacity: isRubberbandEnabled ? 1 : 0.4 }}
+                >
+                  〰️
+                </button>
+                <div className="divider-vertical" style={{ width: '1px', height: '16px', background: 'var(--border-secondary)', margin: '0 4px' }}></div>
                 <button
                   className="font-size-btn"
                   onClick={decreaseFontSize}
